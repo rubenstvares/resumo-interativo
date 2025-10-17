@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitetura de Computadores - Resumo Interativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            padding-top: 112px; /* Space for the fixed header + nav */
+        }
+        .topic-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            animation: slideIn 0.3s;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(-100%);
+            z-index: 200;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar-overlay {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+        }
+        .sidebar-overlay.open {
+            display: block;
+        }
+        .nav-button {
+            border-bottom: 4px solid transparent;
+            transition: border-color 0.3s, color 0.3s;
+        }
+        .nav-button.active {
+            border-bottom-color: #3b82f6; /* blue-500 */
+            color: #2563eb; /* blue-600 */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .info-btn, .table-btn {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f1f5f9;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0" onclick="toggleSidebar()"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed top-0 left-0 h-full w-80 bg-white shadow-lg p-6 overflow-y-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-2xl font-bold text-blue-600">Sumário</h3>
+            <button onclick="toggleSidebar()" class="p-2 -mr-2 text-gray-400 hover:text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <nav>
+            <!-- Summary for Exam 1 -->
+            <ul id="summary-sistemas" class="summary-list space-y-1">
+                <li><a href="#topic-tech" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">1</span>
+                    <span class="font-medium group-hover:text-blue-600">Avanço Tecnológico</span>
+                </a></li>
+                <li><a href="#topic-arch" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">2</span>
+                    <span class="font-medium group-hover:text-blue-600">Arquitetura vs Organização</span>
+                </a></li>
+                <li><a href="#topic-groups" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">3</span><span class="font-medium group-hover:text-blue-600">Grupos de Computadores</span></a></li>
+                <li><a href="#topic-components" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">4</span><span class="font-medium group-hover:text-blue-600">Componentes Principais</span></a></li>
+                <li><a href="#topic-number-systems" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">5</span><span class="font-medium group-hover:text-blue-600">Sistemas de Numeração</span></a></li>
+                <li><a href="#topic-binary-rep" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">6</span><span class="font-medium group-hover:text-blue-600">Representação Binária</span></a></li>
+                <li><a href="#topic-logic-ops" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">7</span><span class="font-medium group-hover:text-blue-600">Operações Lógicas</span></a></li>
+                <li><a href="#topic-circuits" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">8</span><span class="font-medium group-hover:text-blue-600">Circuitos Lógicos</span></a></li>
+                <li><a href="#topic-os" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">9</span><span class="font-medium group-hover:text-blue-600">Sistemas Operacionais</span></a></li>
+            </ul>
+            <!-- Summary for Exam 2 -->
+            <ul id="summary-ambientes" class="summary-list space-y-1" style="display: none;">
+                <li><a href="#topic-network-types" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">1</span><span class="font-medium group-hover:text-teal-600">Tipos de Rede</span></a></li>
+                <li><a href="#topic-connectivity-pillars" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">2</span><span class="font-medium group-hover:text-teal-600">Pilares da Conectividade</span></a></li>
+                <li><a href="#topic-protocols" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">3</span><span class="font-medium group-hover:text-teal-600">Protocolos Essenciais</span></a></li>
+                <li><a href="#topic-physical-media" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">4</span><span class="font-medium group-hover:text-teal-600">Meios Físicos</span></a></li>
+                <li><a href="#topic-connections" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">5</span><span class="font-medium group-hover:text-teal-600">Equipamentos e Conexões</span></a></li>
+                <li><a href="#topic-security" class="flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors group"><span class="bg-teal-100 text-teal-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-sm font-bold">6</span><span class="font-medium group-hover:text-teal-600">Tópicos de Segurança</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-6 h-16 flex items-center justify-between">
+            <button id="hamburger-btn" class="p-2 -ml-2" onclick="toggleSidebar()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <h1 class="hidden sm:block text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-teal-400">
+                Resumo Interativo
+            </h1>
+            <div class="w-6"></div> <!-- Spacer -->
+        </div>
+        <nav class="container mx-auto px-6 flex border-t">
+            <button id="nav-sistemas" class="nav-button active flex-1 py-3 font-semibold text-gray-600 text-sm sm:text-base" onclick="showPage('sistemas')">
+                Sistemas Computacionais e Segurança
+            </button>
+            <button id="nav-ambientes" class="nav-button flex-1 py-3 font-semibold text-gray-600 text-sm sm:text-base" onclick="showPage('ambientes')">
+                Ambientes Computacionais e Conectividade
+            </button>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-12">
+        <!-- Page for Exam 1 -->
+        <div id="page-sistemas" class="page-content">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Sistemas Computacionais e Segurança</h1>
+                <p class="mt-4 text-lg text-gray-600">Um resumo interativo e visual para seus estudos.</p>
+            </div>
+            <div class="max-w-3xl mx-auto space-y-8">
+                
+                <!-- Card: Conceito e Avanço Tecnológico -->
+                <div id="topic-tech" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Avanço Tecnológico
+                        <span class="info-btn" onclick="openModal('modal-tech')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                        <li><b>Desempenho:</b> Busca por maior capacidade e velocidade com custo reduzido.</li>
+                        <li><b>Lei de Moore:</b> O número de transistores em um chip dobra aproximadamente a cada 18-24 meses.</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Arquitetura vs Organização -->
+                <div id="topic-arch" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Arquitetura vs Organização
+                        <span class="info-btn" onclick="openModal('modal-arch')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                        <li><b>Arquitetura:</b> O que o sistema faz. É a visão do programador (conjunto de instruções, registradores).</li>
+                        <li><b>Organização:</b> Como o sistema executa as instruções (pipeline, cache, barramentos).</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Grupos de Computadores -->
+                <div id="topic-groups" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Grupos de Computadores
+                        <span class="info-btn" onclick="openModal('modal-groups')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                        <li><b>Server:</b> Alta capacidade e redundância.</li>
+                        <li><b>Desktop:</b> Uso geral, equilíbrio de custo.</li>
+                        <li><b>Embarcados:</b> Funções específicas (ex: em carros).</li>
+                        <li><b>Mobile:</b> Portáteis, foco em eficiência energética.</li>
+                    </ul>
+                </div>
+                
+                <!-- Card: Componentes Principais -->
+                <div id="topic-components" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Componentes Principais
+                        <span class="info-btn" onclick="openModal('modal-components')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                        <li><b>Processador (CPU):</b> Cérebro do computador (ULA, UC, Registradores).</li>
+                        <li><b>Memória:</b> Armazenamento volátil (RAM) e não volátil (SSD, HD).</li>
+                        <li><b>Placa-mãe:</b> Conecta todos os componentes.</li>
+                        <li><b>Periféricos:</b> Dispositivos de Entrada (teclado), Saída (monitor) e Entrada/Saída (pen drive).</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Sistemas de Numeração -->
+                <div id="topic-number-systems" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                     <h2 class="text-2xl font-bold text-blue-600">Sistemas de Numeração</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Binário (Base 2)</span>
+                            <button class="info-btn text-blue-500 font-medium text-sm flex items-center" onclick="openModal('modal-conv-bin')">
+                                Conversões <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span class="font-semibold">Decimal (Base 10)</span>
+                             <button class="info-btn text-blue-500 font-medium text-sm flex items-center" onclick="openModal('modal-conv-dec')">
+                                Conversões <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span class="font-semibold">Hexadecimal (Base 16)</span>
+                             <button class="info-btn text-blue-500 font-medium text-sm flex items-center" onclick="openModal('modal-conv-hex')">
+                                Conversões <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card: Representação Binária -->
+                <div id="topic-binary-rep" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Representação Binária
+                        <span class="info-btn" onclick="openModal('modal-binary-rep')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <p class="mt-4 text-gray-700">Para representar números negativos:</p>
+                    <ul class="mt-2 list-disc list-inside text-gray-700 space-y-2">
+                        <li><b>Sinal e Magnitude:</b> O primeiro bit indica o sinal (0 para +, 1 para -).</li>
+                        <li><b>Complemento de Dois:</b> Inverte-se todos os bits e soma-se 1.</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Operações Lógicas -->
+                <div id="topic-logic-ops" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Operações e Portas Lógicas
+                        <span class="info-btn" onclick="openModal('modal-logic-ops')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-3 items-center">
+                            <span><b>AND:</b> 1 se AMBOS forem 1.</span>
+                            <button class="table-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 justify-self-end w-32 text-center" onclick="openModal('modal-table-and')">Ver Tabela</button>
+                            
+                            <span><b>OR:</b> 1 se UM for 1.</span>
+                            <button class="table-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 justify-self-end w-32 text-center" onclick="openModal('modal-table-or')">Ver Tabela</button>
+                            
+                            <span><b>XOR:</b> 1 se forem DIFERENTES.</span>
+                            <button class="table-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 justify-self-end w-32 text-center" onclick="openModal('modal-table-xor')">Ver Tabela</button>
+                            
+                            <span><b>NOT:</b> INVERTE o input.</span>
+                            <button class="table-btn bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-200 justify-self-end w-32 text-center" onclick="openModal('modal-table-not')">Ver Tabela</button>
+
+                            <span><b>NAND / NOR:</b> Inversões.</span>
+                            <div class="justify-self-end flex gap-2">
+                                <button class="table-btn bg-teal-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-teal-600 w-16 text-center" onclick="openModal('modal-table-nand')">NAND</button>
+                                <button class="table-btn bg-teal-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-teal-600 w-16 text-center" onclick="openModal('modal-table-nor')">NOR</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Circuitos Lógicos -->
+                <div id="topic-circuits" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                     <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Circuitos Lógicos
+                        <span class="info-btn" onclick="openModal('modal-circuits')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                        <li>Implementam funções booleanas usando portas lógicas.</li>
+                        <li><b>Combinacionais:</b> A saída depende apenas das entradas atuais (ex: somador).</li>
+                        <li><b>Sequenciais:</b> A saída depende das entradas atuais e do estado anterior (possuem memória).</li>
+                    </ul>
+                </div>
+
+                <!-- Card: Sistemas Operacionais -->
+                <div id="topic-os" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                     <h2 class="text-2xl font-bold text-blue-600 flex items-center justify-between">
+                        Sistemas Operacionais
+                        <span class="info-btn" onclick="openModal('modal-os')">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </span>
+                    </h2>
+                    <ul class="mt-4 list-disc list-inside text-gray-700 space-y-2">
+                        <li>Gerencia os recursos do hardware.</li>
+                        <li>Oferece uma interface para o usuário.</li>
+                        <li>Responsável por processos, memória e arquivos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page for Exam 2 -->
+        <div id="page-ambientes" class="page-content" style="display: none;">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Ambientes Computacionais e Conectividade</h1>
+                <p class="mt-4 text-lg text-gray-600">Conteúdo baseado no resumo manuscrito sobre redes.</p>
+            </div>
+            <div class="max-w-3xl mx-auto space-y-8">
+                <!-- NEW Cards based on the new PDF -->
+                <div id="topic-network-types" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-teal-600">Tipos de Rede</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">LAN (Local Area Network)</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-lan')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">MAN (Metropolitan Area Network)</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-man')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">WAN (Wide Area Network)</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-wan')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="topic-connectivity-pillars" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-teal-600">Pilares da Conectividade</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Escalabilidade</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-escalabilidade')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span class="font-semibold">Confiabilidade</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-confiabilidade')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span class="font-semibold">Segurança</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-seguranca')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="topic-protocols" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-teal-600">Protocolos Essenciais</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">HTTP / HTTPS</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-http')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span class="font-semibold">DHCP</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-dhcp')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                         <div class="flex items-center justify-between">
+                            <span class="font-semibold">DNS</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-dns')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">TCP</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-tcp')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="topic-physical-media" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-teal-600">Meios Físicos</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Fibra Óptica</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-fibra')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Cabo Par Trançado</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-par-trancado')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="topic-connections" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-teal-600">Equipamentos e Conexões</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Host</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-host')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Switch</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-switch')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Cabo Crossover</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-crossover')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                 <div id="topic-security" class="bg-white rounded-xl shadow-lg p-6 topic-card">
+                    <h2 class="text-2xl font-bold text-teal-600">Tópicos de Segurança</h2>
+                    <div class="mt-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">VLAN (Virtual LAN)</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-vlan')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Firewall</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-firewall')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Conscientização de Funcionários</span>
+                            <button class="info-btn text-teal-500 font-medium text-sm flex items-center" onclick="openModal('modal-conscientizacao')">
+                                Saiba Mais <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="border-t mt-12">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-600 flex justify-center items-center">
+            <span class="text-sm">Sobre o Resumo Interativo</span>
+            <button class="ml-4 text-white bg-blue-500 hover:bg-blue-600 rounded-full text-sm px-4 py-2 transition-colors" onclick="openModal('modal-tutorial')">
+                Ver Tutorial
+            </button>
+        </div>
+    </footer>
+
+    <!-- MODAL DE TUTORIAL -->
+    <div id="modal-tutorial" class="modal" onclick="closeModal('modal-tutorial', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Bem-vindo ao Resumo Interativo!</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-tutorial')">&times;</span>
+            </div>
+            <div class="space-y-4 text-gray-700">
+                <p>Este é um guia de estudos interativo para te ajudar a se preparar para as provas.</p>
+                <div>
+                    <h4 class="font-semibold text-lg mb-2">Como usar:</h4>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>Navegue entre os conteúdos das provas usando os botões no cabeçalho.</li>
+                        <li>Use o menu <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg> no canto superior esquerdo para acessar rapidamente qualquer tópico.</li>
+                        <li>Em cada card, clique nos botões <b>"Saiba Mais"</b> ou <b>"Conversões"</b> para abrir um pop-up com explicações detalhadas, exemplos e analogias.</li>
+                    </ul>
+                </div>
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-r-lg mt-6">
+                    <p class="font-bold">Aviso Importante</p>
+                    <p>Este documento foi gerado por um docente para auxiliar nos estudos. Ele serve como material de apoio e não substitui integralmente a base de informações da prova.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modals for Exam 1 -->
+    <div id="modal-tech" class="modal" onclick="closeModal('modal-tech', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Avanço Tecnológico</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-tech')">&times;</span>
+            </div>
+            <p class="text-gray-700">A <b>Lei de Moore</b> é uma observação feita por Gordon Moore, cofundador da Intel. Ele previu que a densidade de transistores (os minúsculos interruptores que são a base dos processadores) dobraria a cada dois anos.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> Imagine que a cada 2 anos, você consegue construir uma cidade com o dobro de casas no mesmo espaço, sem aumentar o tamanho da cidade. Isso significa mais poder de processamento em chips cada vez menores e mais eficientes energeticamente. Essa evolução constante é o que permite que smartphones hoje sejam mais poderosos que supercomputadores de décadas atrás.</p>
+        </div>
+    </div>
+    <div id="modal-arch" class="modal" onclick="closeModal('modal-arch', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Arquitetura vs Organização</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-arch')">&times;</span>
+            </div>
+            <p class="text-gray-700"><b>Analogia do Carro:</b></p>
+            <ul class="mt-2 list-disc list-inside text-gray-700 space-y-2">
+                <li><b>Arquitetura:</b> É o painel do motorista. O volante, os pedais e o câmbio são sempre os mesmos. Um motorista sabe dirigir qualquer carro porque a "arquitetura" (a interface) é a mesma. No computador, isso seria o conjunto de instruções que o processador entende.</li>
+                <li><b>Organização:</b> É o que está debaixo do capô. Um carro pode ter um motor 1.0, elétrico ou a diesel. Todos fazem o carro andar, mas a "organização" interna é diferente e afeta o desempenho e o custo. Da mesma forma, dois processadores com a mesma arquitetura podem ter organizações diferentes (mais cache, etc.).</li>
+            </ul>
+             <p class="mt-4 text-gray-700">A arquitetura tende a ser duradoura, enquanto a organização muda a cada nova geração de hardware para obter mais desempenho.</p>
+        </div>
+    </div>
+    <div id="modal-groups" class="modal" onclick="closeModal('modal-groups', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Grupos de Computadores</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-groups')">&times;</span>
+            </div>
+            <p class="text-gray-700">Cada grupo é otimizado para uma finalidade diferente:</p>
+            <ul class="mt-2 list-disc list-inside text-gray-700 space-y-2">
+                <li><b>Servidores (Servers):</b> Projetados para nunca desligar, processar milhões de requisições e armazenar enormes volumes de dados. Têm fontes e discos redundantes para evitar falhas.</li>
+                <li><b>Desktops:</b> O computador de mesa tradicional. Busca o melhor equilíbrio entre custo e performance para diversas tarefas.</li>
+                <li><b>Sistemas Embarcados (Embedded):</b> Computadores "escondidos" dentro de outros dispositivos (micro-ondas, carro, TV smart). Têm uma função muito restrita.</li>
+                 <li><b>Dispositivos Móveis (Mobile):</b> Smartphones e tablets. O maior desafio é o gerenciamento de energia. Todos os componentes são projetados para consumir o mínimo de bateria possível.</li>
+            </ul>
+        </div>
+    </div>
+    <div id="modal-components" class="modal" onclick="closeModal('modal-components', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Componentes Principais</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-components')">&times;</span>
+            </div>
+             <p class="mt-4 text-gray-700"><b>Analogia do Escritório:</b></p>
+            <ul class="mt-2 list-disc list-inside text-gray-700 space-y-2">
+                <li><b>CPU (Processador):</b> É você, o trabalhador. Você realiza as tarefas e faz os cálculos.</li>
+                <li><b>Memória RAM:</b> É a sua mesa de trabalho. Rápida de acessar, mas é limpa quando você vai embora (volátil).</li>
+                <li><b>HD/SSD (Armazenamento):</b> É o arquivo ou armário. Guarda tudo a longo prazo (não volátil).</li>
+                <li><b>Placa-mãe:</b> É o próprio escritório. Conecta a sua mesa, o arquivo e você.</li>
+                 <li><b>Periféricos:</b> São o telefone (entrada), a impressora (saída) e o scanner (entrada/saída).</li>
+            </ul>
+        </div>
+    </div>
+    <div id="modal-binary-rep" class="modal" onclick="closeModal('modal-binary-rep', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Complemento de Dois</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-binary-rep')">&times;</span>
+            </div>
+            <p class="text-gray-700">O <b>Complemento de Dois</b> é um método que permite que o computador use a mesma operação de soma para realizar subtrações. `A - B` se torna `A + (-B)`. Veja como converter um número para seu negativo:</p>
+            <p class="mt-4 text-gray-700"><b>Exemplo: Representar -5 em 8 bits.</b></p>
+            <ol class="mt-2 list-decimal list-inside text-gray-700 space-y-2 font-mono bg-gray-100 p-4 rounded">
+                <li>
+                    Primeiro, pegue o número positivo.<br>
+                    5 em 8 bits é: <b class="text-green-600">00000101</b>
+                </li>
+                <li>
+                    Inverta todos os bits (0 vira 1, 1 vira 0).<br>
+                    <b class="text-orange-600">11111010</b>
+                </li>
+                <li>
+                    Some 1 ao resultado.<br>
+                     &nbsp;11111010 + 1 = <b class="text-blue-600">11111011</b>
+                </li>
+            </ol>
+            <p class="mt-4 text-gray-700">Pronto! <b>11111011</b> é a representação de -5 em 8 bits.</p>
+        </div>
+    </div>
+    <div id="modal-logic-ops" class="modal" onclick="closeModal('modal-logic-ops', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Operações Lógicas</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-logic-ops')">&times;</span>
+            </div>
+            <p class="text-gray-700">As operações lógicas são os blocos de construção de todo o processamento digital.</p>
+             <p class="mt-4 text-gray-700"><b>Analogia da Contratação:</b></p>
+            <ul class="mt-2 list-disc list-inside text-gray-700 space-y-2">
+                <li><b>AND:</b> Precisa de (Experiência) E (Formação). Se faltar um, não é contratado.</li>
+                <li><b>OR:</b> Precisa de (Experiência) OU (Formação). Se tiver pelo menos um, é contratado.</li>
+                 <li><b>XOR:</b> A luz acende se você mexer em um interruptor, mas apaga se mexer nos dois.</li>
+                <li><b>NOT:</b> Simplesmente inverte a condição. Se a porta está (aberta), NOT é (fechada).</li>
+            </ul>
+        </div>
+    </div>
+    <div id="modal-circuits" class="modal" onclick="closeModal('modal-circuits', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Circuitos Lógicos</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-circuits')">&times;</span>
+            </div>
+            <p class="text-gray-700"><b>Exemplo Prático: Somadores</b></p>
+            <ul class="mt-2 list-disc list-inside text-gray-700 space-y-2">
+                <li><b>Meio-Somador (Half-Adder):</b> Soma dois bits (A e B). Saídas: <b>Soma (S)</b> e <b>"Vai-um" (Carry-out)</b>.</li>
+                 <li><b>Somador Completo (Full-Adder):</b> Soma três bits: A, B e um "vai-um" da soma anterior (Carry-in). É essencial para somar números com vários bits.</li>
+            </ul>
+             <p class="mt-4 text-gray-700">Combinando vários somadores, construímos a ULA de um processador.</p>
+        </div>
+    </div>
+    <div id="modal-os" class="modal" onclick="closeModal('modal-os', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-blue-600">Saiba Mais: Sistemas Operacionais (SO)</h3>
+                <span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-os')">&times;</span>
+            </div>
+            <p class="text-gray-700"><b>Analogia do Gerente de Restaurante:</b> O SO gerencia os processos (cozinheiros), a memória (balcão), os dispositivos (forno) e fornece a interface para o usuário (garçom).</p>
+        </div>
+    </div>
+    <div id="modal-table-and" class="modal" onclick="closeModal('modal-table-and', event)"><div class="modal-content bg-white p-6 rounded-lg shadow-2xl w-auto"><h3 class="text-xl font-bold text-center mb-4">Tabela Verdade: AND</h3><table><thead><tr><th>A</th><th>B</th><th>Saída (A · B)</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></tbody></table></div></div>
+    <div id="modal-table-or" class="modal" onclick="closeModal('modal-table-or', event)"><div class="modal-content bg-white p-6 rounded-lg shadow-2xl w-auto"><h3 class="text-xl font-bold text-center mb-4">Tabela Verdade: OR</h3><table><thead><tr><th>A</th><th>B</th><th>Saída (A + B)</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>1</td></tr></tbody></table></div></div>
+    <div id="modal-table-xor" class="modal" onclick="closeModal('modal-table-xor', event)"><div class="modal-content bg-white p-6 rounded-lg shadow-2xl w-auto"><h3 class="text-xl font-bold text-center mb-4">Tabela Verdade: XOR</h3><table><thead><tr><th>A</th><th>B</th><th>Saída (A ⊕ B)</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></tbody></table></div></div>
+    <div id="modal-table-not" class="modal" onclick="closeModal('modal-table-not', event)"><div class="modal-content bg-white p-6 rounded-lg shadow-2xl w-auto"><h3 class="text-xl font-bold text-center mb-4">Tabela Verdade: NOT</h3><table><thead><tr><th>A</th><th>Saída (A')</th></tr></thead><tbody><tr><td>0</td><td>1</td></tr><tr><td>1</td><td>0</td></tr></tbody></table></div></div>
+    <div id="modal-table-nand" class="modal" onclick="closeModal('modal-table-nand', event)"><div class="modal-content bg-white p-6 rounded-lg shadow-2xl w-auto"><h3 class="text-xl font-bold text-center mb-4">Tabela Verdade: NAND</h3><table><thead><tr><th>A</th><th>B</th><th>Saída</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>1</td></tr><tr><td>1</td><td>0</td><td>1</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></tbody></table></div></div>
+    <div id="modal-table-nor" class="modal" onclick="closeModal('modal-table-nor', event)"><div class="modal-content bg-white p-6 rounded-lg shadow-2xl w-auto"><h3 class="text-xl font-bold text-center mb-4">Tabela Verdade: NOR</h3><table><thead><tr><th>A</th><th>B</th><th>Saída</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>1</td></tr><tr><td>0</td><td>1</td><td>0</td></tr><tr><td>1</td><td>0</td><td>0</td></tr><tr><td>1</td><td>1</td><td>0</td></tr></tbody></table></div></div>
+    <div id="modal-conv-bin" class="modal" onclick="closeModal('modal-conv-bin', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+             <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-blue-600">Conversões: Binário</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-conv-bin')">&times;</span></div>
+            <div>
+                <h4 class="text-xl font-semibold text-gray-800 mb-2">Binário para Decimal</h4>
+                <p class="mb-4">Multiplique cada bit pelo seu peso posicional (potências de 2, da direita para a esquerda, começando com 0) e some os resultados.</p>
+                <div class="bg-gray-100 p-4 rounded-lg font-mono text-center">
+                    <p>Exemplo: <b class="text-blue-600">1101₂</b></p>
+                    <p>(<b class="text-red-600">1</b> × 2³) + (<b class="text-red-600">1</b> × 2²) + (<b class="text-red-600">0</b> × 2¹) + (<b class="text-red-600">1</b> × 2⁰)</p>
+                    <p>(<b class="text-red-600">1</b> × 8) + (<b class="text-red-600">1</b> × 4) + (<b class="text-red-600">0</b> × 2) + (<b class="text-red-600">1</b> × 1)</p>
+                    <p>8 + 4 + 0 + 1 = <b class="text-green-600">13₁₀</b></p>
+                </div>
+            </div>
+            <div class="mt-6 border-t pt-6">
+                 <h4 class="text-xl font-semibold text-gray-800 mb-2">Binário para Hexadecimal</h4>
+                 <p class="mb-4">Agrupe os bits em grupos de 4 (nibbles), da direita para a esquerda. Converta cada grupo para seu dígito hexadecimal correspondente.</p>
+                 <div class="bg-gray-100 p-4 rounded-lg font-mono text-center">
+                    <p>Exemplo: <b class="text-blue-600">11011110₂</b></p>
+                    <p>Agrupar: <b class="text-orange-600">1101</b> <b class="text-purple-600">1110</b></p>
+                    <p><b class="text-orange-600">1101₂</b> = 13₁₀ = <b class="text-orange-600">D₁₆</b></p>
+                    <p><b class="text-purple-600">1110₂</b> = 14₁₀ = <b class="text-purple-600">E₁₆</b></p>
+                    <p>Resultado: <b class="text-green-600">DE₁₆</b></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-conv-dec" class="modal" onclick="closeModal('modal-conv-dec', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+             <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-blue-600">Conversões: Decimal</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-conv-dec')">&times;</span></div>
+            <div>
+                <h4 class="text-xl font-semibold text-gray-800 mb-2">Decimal para Binário</h4>
+                <p class="mb-4">Faça divisões sucessivas por 2. O número binário é formado pelos restos da divisão, lidos de baixo para cima.</p>
+                <div class="bg-gray-100 p-4 rounded-lg font-mono">
+                    <p>Exemplo: <b class="text-blue-600">13₁₀</b></p>
+                    <p>13 ÷ 2 = 6, Resto <b class="text-red-600">1</b></p>
+                    <p>6 ÷ 2 = 3, Resto <b class="text-red-600">0</b></p>
+                    <p>3 ÷ 2 = 1, Resto <b class="text-red-600">1</b></p>
+                    <p>1 ÷ 2 = 0, Resto <b class="text-red-600">1</b></p>
+                    <p>Lendo de baixo para cima: <b class="text-green-600">1101₂</b></p>
+                </div>
+            </div>
+            <div class="mt-6 border-t pt-6">
+                 <h4 class="text-xl font-semibold text-gray-800 mb-2">Decimal para Hexadecimal</h4>
+                 <p class="mb-4">Faça divisões sucessivas por 16. O número hexadecimal é formado pelos restos (convertendo 10-15 para A-F), lidos de baixo para cima.</p>
+                 <div class="bg-gray-100 p-4 rounded-lg font-mono">
+                    <p>Exemplo: <b class="text-blue-600">222₁₀</b></p>
+                    <p>222 ÷ 16 = 13, Resto <b class="text-red-600">14</b> (E)</p>
+                    <p>13 ÷ 16 = 0, Resto <b class="text-red-600">13</b> (D)</p>
+                    <p>Lendo de baixo para cima: <b class="text-green-600">DE₁₆</b></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-conv-hex" class="modal" onclick="closeModal('modal-conv-hex', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+             <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-blue-600">Conversões: Hexadecimal</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-conv-hex')">&times;</span></div>
+            <div>
+                <h4 class="text-xl font-semibold text-gray-800 mb-2">Hexadecimal para Binário</h4>
+                <p class="mb-4">Converta cada dígito hexadecimal para seu equivalente em 4 bits (nibble).</p>
+                <div class="bg-gray-100 p-4 rounded-lg font-mono text-center">
+                    <p>Exemplo: <b class="text-blue-600">DE₁₆</b></p>
+                    <p><b class="text-orange-600">D₁₆</b> = 13₁₀ = <b class="text-orange-600">1101₂</b></p>
+                    <p><b class="text-purple-600">E₁₆</b> = 14₁₀ = <b class="text-purple-600">1110₂</b></p>
+                    <p>Juntando: <b class="text-green-600">11011110₂</b></p>
+                </div>
+            </div>
+            <div class="mt-6 border-t pt-6">
+                 <h4 class="text-xl font-semibold text-gray-800 mb-2">Hexadecimal para Decimal</h4>
+                 <p class="mb-4">Multiplique cada dígito pelo seu peso posicional (potências de 16, da direita para a esquerda) e some os resultados.</p>
+                 <div class="bg-gray-100 p-4 rounded-lg font-mono text-center">
+                    <p>Exemplo: <b class="text-blue-600">DE₁₆</b></p>
+                    <p>(<b class="text-red-600">D</b> × 16¹) + (<b class="text-red-600">E</b> × 16⁰)</p>
+                    <p>(<b class="text-red-600">13</b> × 16) + (<b class="text-red-600">14</b> × 1)</p>
+                    <p>208 + 14 = <b class="text-green-600">222₁₀</b></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals for Exam 2 -->
+    <div id="modal-lan" class="modal" onclick="closeModal('modal-lan', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: LAN</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-lan')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Rede local que cobre uma área geográfica pequena, como um escritório, um prédio ou uma residência.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É como o sistema de interfone de um prédio. A comunicação é rápida e restrita apenas àquele local.</p>
+        </div>
+    </div>
+     <div id="modal-man" class="modal" onclick="closeModal('modal-man', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: MAN</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-man')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Rede metropolitana que conecta múltiplos pontos (geralmente várias LANs) dentro de uma mesma cidade ou região metropolitana.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É como a rede de telefonia fixa de uma cidade. Conecta vários "prédios" (LANs) dentro dos limites da cidade.</p>
+        </div>
+    </div>
+     <div id="modal-wan" class="modal" onclick="closeModal('modal-wan', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: WAN</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-wan')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Rede de longa distância que cobre áreas geográficas extensas, como países ou continentes. A Internet é o maior exemplo de uma WAN.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É como o sistema telefônico global. Conecta "cidades" (MANs) no mundo todo.</p>
+        </div>
+    </div>
+    <div id="modal-escalabilidade" class="modal" onclick="closeModal('modal-escalabilidade', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Escalabilidade</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-escalabilidade')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> É a capacidade da rede de crescer e se adaptar ao aumento da demanda (mais usuários, mais tráfego) sem perder performance ou precisar ser totalmente refeita.</p>
+            <p class="mt-4 text-gray-700"><b>Exemplo:</b> Pense em uma startup. A rede deve ser projetada para suportar 10 funcionários hoje e 500 no próximo ano. Isso envolve o uso de equipamentos modulares e a fácil adição de mais links de internet.</p>
+        </div>
+    </div>
+    <div id="modal-confiabilidade" class="modal" onclick="closeModal('modal-confiabilidade', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Confiabilidade</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-confiabilidade')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> É a garantia de que a rede funcionará continuamente, com o mínimo de interrupções. Isso é alcançado através de redundância (ter componentes duplicados) e backups.</p>
+            <p class="mt-4 text-gray-700"><b>Exemplo:</b> Um hospital não pode ficar sem sistema. Por isso, ele tem dois links de internet de operadoras diferentes e geradores de energia. Se um falhar, o outro assume. Isso é redundância.</p>
+        </div>
+    </div>
+     <div id="modal-seguranca" class="modal" onclick="closeModal('modal-seguranca', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Segurança</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-seguranca')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> É o conjunto de políticas e práticas para proteger a integridade, confidencialidade e disponibilidade dos dados e da infraestrutura de rede contra acessos não autorizados e ameaças.</p>
+            <p class="mt-4 text-gray-700"><b>Exemplo:</b> A rede de um banco precisa ser uma fortaleza. Isso inclui Firewalls para bloquear ataques, VPNs para acesso remoto seguro e políticas rígidas sobre o que os funcionários podem ou não fazer na rede.</p>
+        </div>
+    </div>
+    <div id="modal-http" class="modal" onclick="closeModal('modal-http', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: HTTP/HTTPS</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-http')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Protocolos para transferência de dados (como páginas web) entre um cliente (navegador) e um servidor. O 'S' no HTTPS significa 'Seguro' e indica que a comunicação é criptografada.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> HTTP é como enviar um cartão postal (qualquer um pode ler o conteúdo). HTTPS é como enviar uma carta lacrada e registrada (só o destinatário consegue ler).</p>
+        </div>
+    </div>
+    <div id="modal-dhcp" class="modal" onclick="closeModal('modal-dhcp', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: DHCP</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-dhcp')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> (Dynamic Host Configuration Protocol) É um protocolo que distribui endereços IP e outras configurações de rede de forma automática para os dispositivos que se conectam.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É o funcionário dos correios que te dá um endereço temporário (IP) e outras informações (gateway, DNS) assim que você se conecta à rede Wi-Fi.</p>
+        </div>
+    </div>
+    <div id="modal-dns" class="modal" onclick="closeModal('modal-dns', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: DNS</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-dns')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> (Domain Name System) É o sistema que "traduz" nomes de domínio amigáveis para humanos (ex: www.google.com) para os endereços IP numéricos que as máquinas entendem.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É a lista de contatos do seu celular. Você procura por "João" (nome de domínio), e o celular sabe o número para ligar (endereço IP).</p>
+        </div>
+    </div>
+    <div id="modal-tcp" class="modal" onclick="closeModal('modal-tcp', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: TCP</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-tcp')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> (Transmission Control Protocol) É um protocolo que garante a entrega confiável e ordenada dos pacotes de dados. Ele verifica se todos os pacotes chegaram e os remonta na ordem correta.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É como um serviço de Sedex com aviso de recebimento. Ele divide sua encomenda (dados) em pacotes, numera todos, envia, e no final confirma se todos chegaram na ordem certa antes de entregar.</p>
+        </div>
+    </div>
+    <div id="modal-fibra" class="modal" onclick="closeModal('modal-fibra', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Fibra Óptica</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-fibra')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Meio físico que transmite dados através de pulsos de luz por um filamento de vidro ou plástico. É extremamente rápido, imune a interferências eletromagnéticas e ideal para longas distâncias.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É uma Autobahn alemã. Extremamente veloz, sem limite de velocidade aparente, e não sofre com "congestionamento" (interferência). Perfeita para viagens longas entre cidades.</p>
+        </div>
+    </div>
+    <div id="modal-par-trancado" class="modal" onclick="closeModal('modal-par-trancado', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Cabo Par Trançado</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-par-trancado')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Cabo de cobre, mais comum em redes locais (LANs), onde os fios são trançados para reduzir a interferência. É mais barato, porém limitado a distâncias curtas (geralmente até 100m).</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> São as ruas e avenidas de um bairro. Eficientes para o tráfego local, mas têm limites de velocidade e sofrem com cruzamentos (interferência).</p>
+        </div>
+    </div>
+    <div id="modal-host" class="modal" onclick="closeModal('modal-host', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Host</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-host')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Qualquer dispositivo final conectado a uma rede que pode enviar ou receber dados. Exemplos incluem computadores, smartphones, servidores, impressoras de rede, etc.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> Em um prédio comercial, cada sala com seu computador e telefone é um "host".</p>
+        </div>
+    </div>
+    <div id="modal-switch" class="modal" onclick="closeModal('modal-switch', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Switch</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-switch')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Equipamento central que conecta múltiplos hosts em uma LAN. Ele aprende o endereço de cada host e encaminha os pacotes de dados de forma inteligente, apenas para a porta de destino correta, evitando colisões.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É a central telefônica de um andar. Quando a sala 101 quer falar com a 105, o Switch conecta apenas as duas, sem que as outras salas ouçam a conversa.</p>
+        </div>
+    </div>
+    <div id="modal-crossover" class="modal" onclick="closeModal('modal-crossover', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Cabo Crossover</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-crossover')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Um tipo especial de cabo de par trançado usado para conectar dois dispositivos iguais diretamente (ex: PC para PC, ou switch para switch) sem a necessidade de um intermediário.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É como esticar um fio de barbante com latinhas entre duas janelas para conversar diretamente, sem passar pela central telefônica (Switch).</p>
+        </div>
+    </div>
+    <div id="modal-vlan" class="modal" onclick="closeModal('modal-vlan', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: VLAN</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-vlan')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> (Virtual LAN) Cria sub-redes lógicas e isoladas dentro da mesma infraestrutura de rede física. Permite agrupar dispositivos por departamento (ex: Financeiro, TI) para maior segurança e organização, mesmo que estejam conectados ao mesmo switch.</p>
+            <p class="mt-4 text-gray-700"><b>Exemplo:</b> Em um hospital, a rede dos equipamentos médicos (sensível) é separada da rede Wi-Fi dos visitantes por meio de VLANs. Se a rede dos visitantes for atacada, a rede médica continua segura.</p>
+        </div>
+    </div>
+    <div id="modal-firewall" class="modal" onclick="closeModal('modal-firewall', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Firewall</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-firewall')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> Uma barreira de proteção que monitora e filtra o tráfego de rede (entrada e saída), bloqueando acessos maliciosos ou não autorizados com base em um conjunto de regras de segurança.</p>
+            <p class="mt-4 text-gray-700"><b>Analogia:</b> É o segurança na porta de uma festa. Ele tem uma lista de convidados (regras) e barra qualquer um que não esteja nela ou que pareça suspeito.</p>
+        </div>
+    </div>
+    <div id="modal-conscientizacao" class="modal" onclick="closeModal('modal-conscientizacao', event)">
+        <div class="modal-content bg-white p-8 rounded-lg shadow-2xl w-11/12 md:w-2/3 lg:w-1/2">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-teal-600">Saiba Mais: Conscientização</h3><span class="text-3xl text-gray-400 hover:text-gray-700 cursor-pointer" onclick="closeModal('modal-conscientizacao')">&times;</span></div>
+            <p class="text-gray-700"><b>Definição:</b> É o processo de treinar e educar os colaboradores sobre as políticas de segurança e as ameaças cibernéticas, como a Engenharia Social, que é a tática de manipulação para obter informações confidenciais.</p>
+            <p class="mt-4 text-gray-700"><b>Exemplo:</b> Ensinar os funcionários a nunca compartilhar senhas e a desconfiar de e-mails que pedem informações urgentes ou que contenham links suspeitos. O funcionário é a primeira linha de defesa.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Page Switching Logic ---
+        function showPage(pageId) {
+            // Hide all page content
+            document.querySelectorAll('.page-content').forEach(page => {
+                page.style.display = 'none';
+            });
+            // Show the selected page
+            document.getElementById('page-' + pageId).style.display = 'block';
+
+            // Hide all summary lists
+            document.querySelectorAll('.summary-list').forEach(list => {
+                list.style.display = 'none';
+            });
+            // Show the corresponding summary
+            document.getElementById('summary-' + pageId).style.display = 'block';
+
+            // Update active state on nav buttons
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            document.getElementById('nav-' + pageId).classList.add('active');
+        }
+
+        // --- Modal Logic ---
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+        function closeModal(modalId, event) {
+            const modal = document.getElementById(modalId);
+            if (!event || event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        // --- Sidebar Logic ---
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('open');
+        }
+        document.querySelectorAll('#sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+            });
+        });
+
+        // --- Tutorial on First Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set the initial page
+            showPage('sistemas');
+
+            // Show tutorial if it's the first visit
+            if (!localStorage.getItem('tutorialVisto')) {
+                openModal('modal-tutorial');
+                localStorage.setItem('tutorialVisto', 'true');
+            }
+        });
+    </script>
+</body>
+</html>
+
